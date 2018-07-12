@@ -6,54 +6,93 @@
  */
 {{/resource}}
 class {{name}} {
+
+  static get inject () {
+    /**
+    * Injetando models por aqui, basta respeitar a mesma ordem no constructor
+    */
+    // return [
+    //   'App/Models/Foo',
+    //   'App/Models/Bar',
+    //   ] 
+  }
+  
+  /*
+    constructor () {
+    //Code lives here
+  }
+  */
+
   {{#resource}}
   /**
    * Show a list of all {{resourceNamePlural}}.
    * GET {{resourceNamePlural}}
    */
-  async index ({ request, response, view }) {
-  }
-
-  /**
-   * Render a form to be used for creating a new {{resourceName}}.
-   * GET {{resourceNamePlural}}/create
-   */
-  async create ({ request, response, view }) {
+  async index ({ request, request: { useClientDB: useClientDB }, response }) {
+    try{
+      return await this.Foo(useClientDB).find();
+    }
+    catch(err){
+      //console.log(err);
+      return response.badRequest({ error : "Error loading {{name}}.index"})
+    }
   }
 
   /**
    * Create/save a new {{resourceName}}.
    * POST {{resourceNamePlural}}
    */
-  async store ({ request, response }) {
+   async store ({ request, request: { useClientDB: useClientDB }, response }) {
+    try{
+      return await this.Foo(useClientDB).create({ ...request.body });
+    }
+    catch(err){
+      //console.log(err);
+      return response.badRequest({ error : "Error loading {{name}}.store"})
+    }
   }
 
   /**
    * Display a single {{resourceName}}.
    * GET {{resourceNamePlural}}/:id
    */
-  async show ({ params, request, response, view }) {
-  }
-
-  /**
-   * Render a form to update an existing {{resourceName}}.
-   * GET {{resourceNamePlural}}/:id/edit
-   */
-  async edit ({ params, request, response, view }) {
+  async show ({ request, request: { useClientDB: useClientDB }, response, params }) {
+    try{
+      return await this.Foo(useClientDB).findById(params.id);
+    }
+    catch(err){
+      //console.log(err);
+      return response.badRequest({ error : "Error loading {{name}}.show"})
+    }
   }
 
   /**
    * Update {{resourceName}} details.
    * PUT or PATCH {{resourceNamePlural}}/:id
    */
-  async update ({ params, request, response }) {
+  async update ({ request, request: { useClientDB: useClientDB }, response, params }) {
+     try {
+      return await this.Foo(useClientDB).findByIdAndUpdate(params.id, { ...request.body }, { new: true });
+    }
+    catch(err){
+      //console.log(err);
+    return response.badRequest({ error : "Error loading {{name}}.update"})
+    }
   }
 
   /**
    * Delete a {{resourceName}} with id.
    * DELETE {{resourceNamePlural}}/:id
    */
-  async destroy ({ params, request, response }) {
+  async destroy ({ request, request: { useClientDB: useClientDB }, response, params }) {
+    try{
+      await this.Foo(useClientDB).findByIdAndRemove(params.id);
+      return response.ok();
+    }
+    catch(err){
+      //console.log(err);
+      return response.badRequest({ error : "Error loading {{name}}.destroy"})
+    }
   }
   {{/resource}}
 }

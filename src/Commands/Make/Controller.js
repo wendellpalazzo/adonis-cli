@@ -29,7 +29,7 @@ class MakeController extends BaseCommand {
     return `
     make:controller
     { name: Name of the controller }
-    { --resource: Create resourceful methods on the controller }
+    { --r: Create resourceful methods on the controller }
     { --type=@value: The type can be http or ws }
     `
   }
@@ -85,11 +85,11 @@ class MakeController extends BaseCommand {
    *
    * @return {void}
    */
-  async handle ({ name }, { type, resource }) {
+  async handle ({ name }, { type, r }) {
     await this.invoke(async () => {
       await this.ensureInProjectRoot()
-      const resourceType = await this._getResourceType(type)
-      await this.generateBlueprint(resourceType, name, { resource })
+      const resourceType = await this._getResourceType(type || 'http')
+      await this.generateBlueprint(resourceType, name, { resource : r })
     })
   }
 }
