@@ -72,7 +72,14 @@ class {{name}} {
    */
   async update ({ request, request: { useClientDB: useClientDB }, response, params }) {
      try {
-      return await this.Foo(useClientDB).findByIdAndUpdate(params.id, { ...request.body }, { new: true });
+      //para usarmos a validação automática do mongoose
+      //se precisamos usar o método completo usando o findById
+      let foo = await this.Foo(useClientDB).findById(params.id);
+      await foo.set({ ...request.body });
+      return await foo.save(); 
+
+      //senão, esta opção eh a mais rápida e eficiente
+      //return await this.Foo(useClientDB).findByIdAndUpdate(params.id, { //...request.body }, { new: true });
     }
     catch(err){
       //console.log(err);
