@@ -11,30 +11,30 @@ class {{name}} {
     /**
     * Injetando models por aqui, basta respeitar a mesma ordem no constructor
     */
-    // return [
-    //   'App/Models/Foo',
-    //   'App/Models/Bar',
-    //   ] 
+    return [
+       'App/Models/{{oldname}}',
+    ]
   }
-  
-  /*
-    constructor () {
+
+
+  constructor ({{oldname}}) {
     //Code lives here
+    this.{{resourceName}} = {{oldname}}
   }
-  */
+
 
   {{#resource}}
   /**
    * Show a list of all {{resourceNamePlural}}.
    * GET {{resourceNamePlural}}
    */
-  async index ({ request, request: { useClientDB: useClientDB }, response }) {
+  async index ({ request, request: { useClientDB }, response }) {
     try{
-      return await this.Foo(useClientDB).find();
+      return await this.{{resourceName}}(useClientDB).find();
     }
     catch(err){
-      //console.log(err);
-      return response.badRequest({ error : "Error loading {{name}}.index"})
+      // console.log(err);
+      return response.badRequest({ error : 'Error loading {{name}}.index'})
     }
   }
 
@@ -42,13 +42,13 @@ class {{name}} {
    * Create/save a new {{resourceName}}.
    * POST {{resourceNamePlural}}
    */
-   async store ({ request, request: { useClientDB: useClientDB }, response }) {
+   async store ({ request, request: { useClientDB }, response }) {
     try{
-      return await this.Foo(useClientDB).create({ ...request.body });
+      return await this.{{resourceName}}(useClientDB).create({ ...request.body });
     }
     catch(err){
-      //console.log(err);
-      return response.badRequest({ error : "Error loading {{name}}.store"})
+      // console.log(err);
+      return response.badRequest({ error : 'Error loading {{name}}.store'})
     }
   }
 
@@ -56,13 +56,13 @@ class {{name}} {
    * Display a single {{resourceName}}.
    * GET {{resourceNamePlural}}/:id
    */
-  async show ({ request, request: { useClientDB: useClientDB }, response, params }) {
+  async show ({ request, request: { useClientDB }, response, params }) {
     try{
-      return await this.Foo(useClientDB).findById(params.id);
+      return await this.{{resourceName}}(useClientDB).findById(params.id);
     }
     catch(err){
-      //console.log(err);
-      return response.badRequest({ error : "Error loading {{name}}.show"})
+      // console.log(err);
+      return response.badRequest({ error : 'Error loading {{name}}.show'})
     }
   }
 
@@ -70,20 +70,20 @@ class {{name}} {
    * Update {{resourceName}} details.
    * PUT or PATCH {{resourceNamePlural}}/:id
    */
-  async update ({ request, request: { useClientDB: useClientDB }, response, params }) {
+  async update ({ request, request: { useClientDB }, response, params }) {
      try {
-      //para usarmos a validação automática do mongoose
-      //se precisamos usar o método completo usando o findById
-      let foo = await this.Foo(useClientDB).findById(params.id);
-      await foo.set({ ...request.body });
-      return await foo.save(); 
+      // para usarmos a validação automática do mongoose
+      // se precisamos usar o método completo usando o findById
+      const {{resourceName}} = await this.{{resourceName}}(useClientDB).findById(params.id);
+      await {{resourceName}}.set({ ...request.body });
+      return await {{resourceName}}.save();
 
-      //senão, esta opção eh a mais rápida e eficiente
-      //return await this.Foo(useClientDB).findByIdAndUpdate(params.id, { //...request.body }, { new: true });
+      // senão, esta opção eh a mais rápida e eficiente
+      // return await this.{{resourceName}}(useClientDB).findByIdAndUpdate(params.id, { // ...request.body }, { new: true });
     }
     catch(err){
-      //console.log(err);
-    return response.badRequest({ error : "Error loading {{name}}.update"})
+      // console.log(err);
+    return response.badRequest({ error : 'Error loading {{name}}.update'})
     }
   }
 
@@ -91,14 +91,14 @@ class {{name}} {
    * Delete a {{resourceName}} with id.
    * DELETE {{resourceNamePlural}}/:id
    */
-  async destroy ({ request, request: { useClientDB: useClientDB }, response, params }) {
+  async destroy ({ request, request: { useClientDB }, response, params }) {
     try{
-      await this.Foo(useClientDB).findByIdAndRemove(params.id);
+      await this.{{resourceName}}(useClientDB).findByIdAndRemove(params.id);
       return response.ok();
     }
     catch(err){
-      //console.log(err);
-      return response.badRequest({ error : "Error loading {{name}}.destroy"})
+      // console.log(err);
+      return response.badRequest({ error : 'Error loading {{name}}.destroy'})
     }
   }
   {{/resource}}

@@ -77,6 +77,7 @@ generators.httpController = {
    */
   getData (name, flags) {
     return {
+      oldname: name,
       name: this.getFileName(name),
       resource: !!flags.resource,
       resourceName: this.getResourceName(name),
