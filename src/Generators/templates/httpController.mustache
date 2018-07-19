@@ -12,14 +12,15 @@ class {{name}} {
     * Injetando models por aqui, basta respeitar a mesma ordem no constructor
     */
     // return [
-    //   'App/Models/Foo',
+    //   'App/Models/{{oldname}}',
     //   'App/Models/Bar',
-    //   ] 
+    //   ]
   }
-  
+
   /*
-    constructor () {
+    constructor ({{oldname}}) {
     //Code lives here
+    this.{{oldname}} = {{oldname}}
   }
   */
 
@@ -76,7 +77,7 @@ class {{name}} {
       //se precisamos usar o método completo usando o findById
       let foo = await this.Foo(useClientDB).findById(params.id);
       await foo.set({ ...request.body });
-      return await foo.save(); 
+      return await foo.save();
 
       //senão, esta opção eh a mais rápida e eficiente
       //return await this.Foo(useClientDB).findByIdAndUpdate(params.id, { //...request.body }, { new: true });
