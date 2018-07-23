@@ -1,5 +1,9 @@
 'use strict'
 
+const { ForbiddenError } = require('@casl/ability')
+const { permittedFieldsOf } = require('@casl/ability/extra')
+const pick = require('lodash.pick')
+
 {{#resource}}
 /**
  * Resourceful controller for interacting with {{resourceNamePlural}}
@@ -29,11 +33,17 @@ class {{name}} {
    */
   async index ({ request, request: { useClientDB }, response }) {
     try{
-      return await this.{{resourceName}}(useClientDB).find();
+      // checando se o usuário pode realizar a ação requisitada
+      request.auth.rules.throwUnlessCan('read', {{oldname}});
+
+      return await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules)
     }
     catch(err){
       // console.log(err);
-      return response.badRequest({ error : 'Error loading {{name}}.index'})
+
+      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+
+      return response.badRequest({ error : 'Houve um erro interno: {{name}}.index'})
     }
   }
 
@@ -43,11 +53,20 @@ class {{name}} {
    */
    async store ({ request, request: { useClientDB }, response }) {
     try{
+
+      // checando se o usuário pode realizar a ação requisitada
+      request.auth.rules.throwUnlessCan('create', '{{oldname}}');
       return await this.{{resourceName}}(useClientDB).create({ ...request.body });
+
     }
     catch(err){
       // console.log(err);
-      return response.badRequest({ error : 'Error loading {{name}}.store'})
+
+      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+
+      if (err.name === 'ValidationError') return response.badRequest(err);
+
+      return response.badRequest({ error : 'Houve um erro interno: {{name}}.store'})
     }
   }
 
@@ -57,11 +76,17 @@ class {{name}} {
    */
   async show ({ request, request: { useClientDB }, response, params }) {
     try{
-      return await this.{{resourceName}}(useClientDB).findById(params.id);
+      // checando se o usuário pode realizar a ação requisitada
+      request.auth.rules.throwUnlessCan('read', '{{oldname}}');
+
+      return await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules).findById(params.id);
     }
     catch(err){
       // console.log(err);
-      return response.badRequest({ error : 'Error loading {{name}}.show'})
+
+      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+
+      return response.badRequest({ error : 'Houve um erro interno: {{name}}.show'})
     }
   }
 
@@ -71,18 +96,32 @@ class {{name}} {
    */
   async update ({ request, request: { useClientDB }, response, params }) {
      try {
+
+      // checando se o usuário pode realizar a ação requisitada
+      request.auth.rules.throwUnlessCan('update', '{{oldname}}');
+
       // para usarmos a validação automática do mongoose
-      // se precisamos usar o método completo usando o findById
-      const {{resourceName}} = await this.{{resourceName}}(useClientDB).findById(params.id);
-      await {{resourceName}}.set({ ...request.body });
+      const {{resourceName}} = await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules).findOne({ _id: params.id });
+
+      if (!{{resourceName}}) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' });
+
+      const allowedFields = permittedFieldsOf(request.auth.rules, 'update', 'Foo');
+      const body = pick(request.body, allowedFields);
+
+      await {{resourceName}}.set(body);
       return await {{resourceName}}.save();
 
-      // senão, esta opção eh a mais rápida e eficiente
-      // return await this.{{resourceName}}(useClientDB).findByIdAndUpdate(params.id, { // ...request.body }, { new: true });
     }
     catch(err){
       // console.log(err);
-    return response.badRequest({ error : 'Error loading {{name}}.update'})
+
+      if (err.name === 'ValidationError') {
+        return response.badRequest({ errors: err.errors });
+      }
+
+      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+
+      return response.badRequest({ error : 'Houve um erro interno: {{name}}.update'})
     }
   }
 
@@ -92,12 +131,24 @@ class {{name}} {
    */
   async destroy ({ request, request: { useClientDB }, response, params }) {
     try{
-      await this.{{resourceName}}(useClientDB).findByIdAndRemove(params.id);
+
+      // checando se o usuário pode realizar a ação requisitada
+      request.auth.rules.throwUnlessCan('delete', '{{oldname}}');
+
+      const {{resourceName}} = await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules).findOne({ _id: params.id })
+
+      if (!{{resourceName}}) return response.badRequest({ error: 'Não foi encontrado foo com o ID informado ou não possui permissão para continuar este ação' })
+
+      {{resourceName}}.remove();
+
       return response.ok();
     }
     catch(err){
       // console.log(err);
-      return response.badRequest({ error : 'Error loading {{name}}.destroy'})
+
+      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+
+      return response.badRequest({ error : 'Houve um erro interno: {{name}}.destroy'})
     }
   }
   {{/resource}}
