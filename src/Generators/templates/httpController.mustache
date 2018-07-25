@@ -34,7 +34,7 @@ class {{name}} {
   async index ({ request, request: { useClientDB }, response }) {
     try{
       // checando se o usuário pode realizar a ação requisitada
-      request.auth.rules.throwUnlessCan('read', {{oldname}});
+      request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
       return await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules)
     }
