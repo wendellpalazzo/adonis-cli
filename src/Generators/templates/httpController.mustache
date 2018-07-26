@@ -9,13 +9,12 @@ const pick = require('lodash.pick')
  */
 {{/resource}}
 class {{name}} {
-
   static get inject () {
     /**
     * Injetando models por aqui, basta respeitar a mesma ordem no constructor
     */
     return [
-       'App/Models/{{oldname}}',
+      'App/Models/{{oldname}}',
     ]
   }
 
@@ -31,18 +30,17 @@ class {{name}} {
    * GET {{resourceNamePlural}}
    */
   async index ({ request, request: { useClientDB }, response }) {
-    try{
+    try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
       return await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules)
-    }
-    catch(err){
+    } catch (err) {
       // console.log(err);
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error : 'Houve um erro interno: {{name}}.index'})
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.index' })
     }
   }
 
@@ -50,17 +48,16 @@ class {{name}} {
    * Create/save a new {{resourceName}}.
    * POST {{resourceNamePlural}}
    */
-   async store ({ request, request: { useClientDB }, response }) {
-    try{
-
+  async store ({ request, request: { useClientDB }, response }) {
+    try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('create', '{{oldname}}');
-      const doc = await this.{{resourceName}}(useClientDB).create({ ...request.body });
+      const doc = await this.{{resourceName}}(useClientDB)
+        .create({ ...request.body });
 
       await doc.usuarioFezAlteracao(request.auth.user, true)
       return await doc.save();
-
-    } catch(err){
+    } catch (err) {
       // console.log(err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
@@ -69,7 +66,7 @@ class {{name}} {
 
       if (err.name === 'ValidationError') return response.badRequest(err);
 
-      return response.badRequest({ error : 'Houve um erro interno: {{name}}.store'})
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.store' })
     }
   }
 
@@ -78,22 +75,21 @@ class {{name}} {
    * GET {{resourceNamePlural}}/:id
    */
   async show ({ request, request: { useClientDB }, response, params }) {
-    try{
+    try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
       return await this.{{resourceName}}(useClientDB)
           .accessibleBy(request.auth.rules)
           .findOne({ _id: params.id })
-    }
-    catch(err){
+    } catch (err) {
       // console.log(err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error : 'Houve um erro interno: {{name}}.show'})
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.show' })
     }
   }
 
@@ -102,13 +98,14 @@ class {{name}} {
    * PUT or PATCH {{resourceNamePlural}}/:id
    */
   async update ({ request, request: { useClientDB }, response, params }) {
-     try {
-
+    try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('update', '{{oldname}}');
 
       // para usarmos a validação automática do mongoose
-      const doc = await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules).findOne({ _id: params.id });
+      const doc = await this.{{resourceName}}(useClientDB)
+        .accessibleBy(request.auth.rules)
+        .findOne({ _id: params.id });
 
       if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' });
 
@@ -118,7 +115,7 @@ class {{name}} {
       await doc.set(body);
       await doc.usuarioFezAlteracao(request.auth.user)
       return await doc.save();
-    } catch(err){
+    } catch (err) {
       // console.log(err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
@@ -129,7 +126,7 @@ class {{name}} {
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error : 'Houve um erro interno: {{name}}.update'})
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.update' })
     }
   }
 
@@ -138,27 +135,27 @@ class {{name}} {
    * DELETE {{resourceNamePlural}}/:id
    */
   async destroy ({ request, request: { useClientDB }, response, params }) {
-    try{
-
+    try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('delete', '{{oldname}}');
 
-      const doc = await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules).findOne({ _id: params.id })
+      const doc = await this.{{resourceName}}(useClientDB)
+        .accessibleBy(request.auth.rules)
+        .findOne({ _id: params.id })
 
       if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' })
 
       doc.remove();
 
       return response.ok();
-    }
-    catch(err){
+    } catch (err) {
       // console.log(err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error : 'Houve um erro interno: {{name}}.destroy'})
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.destroy' })
     }
   }
   {{/resource}}
