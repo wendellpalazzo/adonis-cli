@@ -80,8 +80,8 @@ class {{name}} {
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
       return await this.{{resourceName}}(useClientDB)
-          .accessibleBy(request.auth.rules)
-          .findOne({ _id: params.id })
+        .accessibleBy(request.auth.rules)
+        .findOne({ _id: params.id })
     } catch (err) {
       // console.log(err);
 
