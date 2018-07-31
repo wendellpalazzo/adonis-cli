@@ -40,7 +40,7 @@ class {{name}} {
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error: 'Houve um erro interno: {{name}}.index' })
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.index', message: err.toString() })
     }
   }
 
@@ -66,7 +66,7 @@ class {{name}} {
 
       if (err.name === 'ValidationError') return response.badRequest(err);
 
-      return response.badRequest({ error: 'Houve um erro interno: {{name}}.store' })
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.store', message: err.toString() })
     }
   }
 
@@ -79,9 +79,13 @@ class {{name}} {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
-      return await this.{{resourceName}}(useClientDB)
+      const doc = await this.{{resourceName}}(useClientDB)
         .accessibleBy(request.auth.rules)
         .findOne({ _id: params.id })
+
+      if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' })
+
+      return doc;
     } catch (err) {
       // console.log(err);
 
@@ -89,7 +93,7 @@ class {{name}} {
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error: 'Houve um erro interno: {{name}}.show' })
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.show', message: err.toString() })
     }
   }
 
@@ -126,7 +130,7 @@ class {{name}} {
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error: 'Houve um erro interno: {{name}}.update' })
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.update', message: err.toString() })
     }
   }
 
@@ -155,7 +159,7 @@ class {{name}} {
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
-      return response.badRequest({ error: 'Houve um erro interno: {{name}}.destroy' })
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.destroy', message: err.toString() })
     }
   }
   {{/resource}}
