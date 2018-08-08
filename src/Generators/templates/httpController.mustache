@@ -34,7 +34,7 @@ class {{name}} {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
-      return await this.{{resourceName}}(useClientDB).accessibleBy(request.auth.rules)
+      return await this.{{resourceName}}(useClientDB).find().accessibleBy(request.auth.rules)
     } catch (err) {
       // console.log(err);
 
