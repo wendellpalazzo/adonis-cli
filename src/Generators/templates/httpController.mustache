@@ -152,6 +152,7 @@ class {{name}} {
       if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' })
 
       doc.delete();
+      doc.usuarioFezExclusao(request.auth.user);
 
       return response.ok();
     } catch (err) {
