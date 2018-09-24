@@ -1,5 +1,6 @@
 'use strict'
 
+const Logger = use('Logger');
 const { ForbiddenError } = require('@casl/ability')
 const pick = require('lodash.pick')
 
@@ -34,9 +35,25 @@ class {{name}} {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
-      return await this.{{resourceName}}(useClientDB).find().accessibleBy(request.auth.rules)
+      const { filter = {}, page = 1, limit = 10, sort = { nome: 1 }, fields } = request.get(
+        'query'
+      );
+
+      return await this.{{resourceName}}(useClientDB).paginate(filter, {
+        select: fields,
+        sort,
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        collation: { locale: 'en', strength: 2 },
+        leanWithId: false,
+        lean: false,
+      });
+
+      // return await this.{{resourceName}}(useClientDB).find().accessibleBy(request.auth.rules)
     } catch (err) {
       // console.log(err);
+      Logger.info(`Critical error on @index ${__filename}`, err);
+
 
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
@@ -59,6 +76,7 @@ class {{name}} {
       return await doc.save();
     } catch (err) {
       // console.log(err);
+      Logger.info(`Critical error on @store ${__filename}`, err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
@@ -88,6 +106,7 @@ class {{name}} {
       return doc;
     } catch (err) {
       // console.log(err);
+      Logger.info(`Critical error on @show ${__filename}`, err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
@@ -121,6 +140,7 @@ class {{name}} {
       return await doc.save();
     } catch (err) {
       // console.log(err);
+      Logger.info(`Critical error on @update ${__filename}`, err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
@@ -157,6 +177,7 @@ class {{name}} {
       return response.ok();
     } catch (err) {
       // console.log(err);
+      Logger.info(`Critical error on @delete ${__filename}`, err);
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
