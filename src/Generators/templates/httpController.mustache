@@ -30,21 +30,19 @@ class {{name}} {
    * Show a list of all {{resourceNamePlural}}.
    * GET {{resourceNamePlural}}
    */
-  async index ({ request, request: { useClientDB }, response }) {
+  async index ({ request, request: { useClientDB, aqp }, response }) {
     try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
-      const { filter = {}, page = 1, limit = 10, sort = { nome: 1 }, fields } = request.get(
-        'query'
-      );
+      // aqp.cleanFilter(); // '','',''.....
 
-      return await this.{{resourceName}}(useClientDB).paginate(filter, {
-        select: fields,
-        sort,
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
-        collation: { locale: 'en', strength: 2 },
+     return await this.{{resourceName}}(useClientDB).paginate(aqp.filter, {
+        select: aqp.projection,
+        sort: { ...aqp.sort },
+        page: aqp.page,
+        limit: aqp.limit,
+        collation: aqp.collation,
         leanWithId: false,
         lean: false,
       });
