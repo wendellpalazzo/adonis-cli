@@ -30,21 +30,19 @@ class {{name}} {
    * Show a list of all {{resourceNamePlural}}.
    * GET {{resourceNamePlural}}
    */
-  async index ({ request, request: { useClientDB }, response }) {
+  async index ({ request, request: { useClientDB, aqp }, response }) {
     try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
-      const { filter = {}, page = 1, limit = 10, sort = { nome: 1 }, fields } = request.get(
-        'query'
-      );
+      // aqp.cleanFilter(); // '','',''.....
 
-      return await this.{{resourceName}}(useClientDB).paginate(filter, {
-        select: fields,
-        sort,
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
-        collation: { locale: 'en', strength: 2 },
+     return await this.{{resourceName}}(useClientDB).paginate(aqp.filter, {
+        select: aqp.projection,
+        sort: { ...aqp.sort },
+        page: aqp.page,
+        limit: aqp.limit,
+        collation: aqp.collation,
         leanWithId: false,
         lean: false,
       });
@@ -92,13 +90,14 @@ class {{name}} {
    * Display a single {{resourceName}}.
    * GET {{resourceNamePlural}}/:id
    */
-  async show ({ request, request: { useClientDB }, response, params }) {
+  async show ({ request, request: { useClientDB, aqp }, response, params }) {
     try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('read', '{{oldname}}');
 
       const doc = await this.{{resourceName}}(useClientDB)
         .findOne({ _id: params.id })
+        .select(aqp.projection)
         .accessibleBy(request.auth.rules)
 
       if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' })
@@ -184,6 +183,35 @@ class {{name}} {
       if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
 
       return response.badRequest({ error: 'Houve um erro interno: {{name}}.destroy', message: err.toString() })
+    }
+  }
+
+  /**
+   * Restore a {{resourceName}} with id.
+   * POST {{resourceNamePlural}}/:id
+   */
+  async restore ({ request, request: { useClientDB }, response, params }) {
+    try {
+      // checando se o usuário pode realizar a ação requisitada
+      request.auth.rules.throwUnlessCan('delete', '{{oldname}}');
+
+      const doc = await this.{{resourceName}}(useClientDB)
+        .findOneWithDeleted({ _id: params.id })
+        .accessibleBy(request.auth.rules)
+
+      if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' })
+
+      doc.restore();
+      return doc;
+    } catch (err) {
+      // console.log(err);
+      Logger.info(`Critical error on @restore ${__filename}`, err);
+
+      if (err.name === 'MongoError') return response.badRequest({ error: err })
+
+      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+
+      return response.badRequest({ error: 'Houve um erro interno: {{name}}.restore', message: err.toString() })
     }
   }
   {{/resource}}

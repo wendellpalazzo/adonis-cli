@@ -1,6 +1,6 @@
 {
   "name": "@adonisjs/cli",
-  "version": "4.0.17",
+  "version": "5.0.0",
   "description": "Command line tool for Adonisjs",
   "keywords": [
     "adonis",
