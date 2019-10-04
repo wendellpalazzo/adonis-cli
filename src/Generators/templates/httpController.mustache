@@ -2,7 +2,7 @@
 
 const Logger = use('Logger');
 const { ForbiddenError } = require('@casl/ability')
-const pick = require('lodash.pick')
+const pick = require('lodash/pick')
 
 {{#resource}}
 /**
@@ -37,6 +37,17 @@ class {{name}} {
 
       // aqp.cleanFilter(); // '','',''.....
 
+     /* const list = {
+        docs: [],
+        total: 0,
+        limit: aqp.limit,
+        page: aqp.page,
+        pages: 0,
+      };
+
+      const aggrDocs = this.{{resourceName}}(useClientDB).aggregate();
+       */
+
      return await this.{{resourceName}}(useClientDB).paginate(aqp.filter, {
         select: aqp.projection,
         sort: { ...aqp.sort },
@@ -53,7 +64,7 @@ class {{name}} {
       Logger.info(`Critical error on @index ${__filename}`, err);
 
 
-      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+      if (err instanceof ForbiddenError) return response.forbidden({ error: 'Você não tem permissão para acessar este recurso' })
 
       return response.badRequest({ error: 'Houve um erro interno: {{name}}.index', message: err.toString() })
     }
@@ -63,7 +74,7 @@ class {{name}} {
    * Create/save a new {{resourceName}}.
    * POST {{resourceNamePlural}}
    */
-  async store ({ request, request: { useClientDB }, response }) {
+  async store ({ request, request: { useClientDB }, response, params }) {
     try {
       // checando se o usuário pode realizar a ação requisitada
       request.auth.rules.throwUnlessCan('create', '{{oldname}}');
@@ -78,7 +89,7 @@ class {{name}} {
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
-      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+      if (err instanceof ForbiddenError) return response.forbidden({ error: 'Você não tem permissão para acessar este recurso' })
 
       if (err.name === 'ValidationError') return response.badRequest({ error: err.errors });
 
@@ -109,7 +120,7 @@ class {{name}} {
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
-      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+      if (err instanceof ForbiddenError) return response.forbidden({ error: 'Você não tem permissão para acessar este recurso' })
 
       return response.badRequest({ error: 'Houve um erro interno: {{name}}.show', message: err.toString() })
     }
@@ -131,8 +142,9 @@ class {{name}} {
 
       if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' });
 
-      const allowedFields = doc.accessibleFieldsBy(request.auth.rules, 'update', '{{oldname}}');
-      const body = pick(request.body, allowedFields);
+      // const allowedFields = doc.accessibleFieldsBy(request.auth.rules, 'update', '{{oldname}}');
+      // const body = pick(request.body, allowedFields);
+      const { body } = request;
 
       await doc.set(body);
       await doc.usuarioFezAlteracao(request.auth.user)
@@ -147,7 +159,7 @@ class {{name}} {
         return response.badRequest({ error: err.errors });
       }
 
-      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+      if (err instanceof ForbiddenError) return response.forbidden({ error: 'Você não tem permissão para acessar este recurso' })
 
       return response.badRequest({ error: 'Houve um erro interno: {{name}}.update', message: err.toString() })
     }
@@ -170,9 +182,7 @@ class {{name}} {
 
       if (!doc) return response.badRequest({ error: 'Não foi encontrado registro com o ID informado ou não possui permissão para continuar este ação' })
 
-      doc.delete();
-      doc.usuarioFezExclusao(request.auth.user);
-
+      await doc.delete(request.auth.userLog);
       return response.ok();
     } catch (err) {
       // console.log(err);
@@ -180,7 +190,7 @@ class {{name}} {
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
-      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+      if (err instanceof ForbiddenError) return response.forbidden({ error: 'Você não tem permissão para acessar este recurso' })
 
       return response.badRequest({ error: 'Houve um erro interno: {{name}}.destroy', message: err.toString() })
     }
@@ -209,7 +219,7 @@ class {{name}} {
 
       if (err.name === 'MongoError') return response.badRequest({ error: err })
 
-      if (err instanceof ForbiddenError) return response.badRequest({ error: 'Você não tem permissão para acessar este recurso' })
+      if (err instanceof ForbiddenError) return response.forbidden({ error: 'Você não tem permissão para acessar este recurso' })
 
       return response.badRequest({ error: 'Houve um erro interno: {{name}}.restore', message: err.toString() })
     }
